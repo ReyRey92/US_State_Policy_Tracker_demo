@@ -240,9 +240,16 @@ search.addWidgets([
               ${themeLozenges}
             </div>
             <div class="links">
-              <p><strong>Legiscan:</strong> <a href="${hit.Legiscan}" target="_blank">Link</a></p>
-              <p><strong>Congress site:</strong> <a href="${hit['Congress site']}" target="_blank">Link</a></p>
-            </div>
+              <p><strong>Policy Type:</strong> ${hit['Policy Type'] || 'N/A'}</p>
+              ${hit.Legiscan && hit.Legiscan.trim() !== ''
+               ? `<p><strong>Legiscan:</strong> <a href="${hit.Legiscan}" target="_blank">Link</a></p>`
+               : ''
+                }
+              ${hit['State site'] && hit['State site'].trim() !== ''
+               ? `<p><strong>State site:</strong> <a href="${hit['State site']}" target="_blank">Link</a></p>`
+               : ''
+               }
+              </div>
           </div>
         `;
       },
@@ -254,6 +261,14 @@ search.addWidgets([
   instantsearch.widgets.pagination({
     container: '#pagination',
     totalPages: 100, // Set the total number of pages
+  }),
+  instantsearch.widgets.refinementList({
+    container: '#policy-type-list',
+    attribute: 'Policy Type',
+    searchable: false, // Remove search functionality
+    showMore: true,
+    limit: 10,
+    showMoreLimit: 20,
   }),
   instantsearch.widgets.refinementList({
     container: '#state-list',
