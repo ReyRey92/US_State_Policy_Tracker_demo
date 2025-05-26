@@ -109,6 +109,38 @@ const search = instantsearch({
   },
 });
 
+// Custom checkbox filter for Current Legislative Session
+const customCurrentSessionFilter = instantsearch.connectors.connectRefinementList((renderOptions, isFirstRender) => {
+  const { items, refine, createURL } = renderOptions;
+
+  if (isFirstRender) {
+    const container = document.querySelector('#current-session-filter');
+    container.innerHTML = `
+      <div class="current-session-checkbox">
+        <input type="checkbox" id="current-session-checkbox" />
+        <label for="current-session-checkbox">Current legislative session only</label>
+      </div>
+    `;
+
+    const checkbox = document.querySelector('#current-session-checkbox');
+    checkbox.addEventListener('change', function() {
+      if (this.checked) {
+        refine('1'); // Filter to show only current session (value = 1)
+      } else {
+        refine('1'); // Toggle off the filter
+      }
+    });
+  }
+
+  // Update checkbox state based on current refinements
+  const checkbox = document.querySelector('#current-session-checkbox');
+  const isCurrentSessionSelected = items.find(item => item.value === '1' && item.isRefined);
+  
+  if (checkbox) {
+    checkbox.checked = !!isCurrentSessionSelected;
+  }
+});
+
 // Custom date range picker widget
 const customDateRangePicker = instantsearch.connectors.connectRange((renderOptions, isFirstRender) => {
   const { refine, currentRefinement } = renderOptions;
@@ -227,10 +259,14 @@ search.addWidgets([
             return `<span class="theme-lozenge" style="background-color: ${bg}; color: ${text}">${theme.trim()}</span>`;
           }).join(' ');
 
-    
+         // Add visual indicator for current legislative session
+        const currentSessionBadge = hit['Current legislative session'] === 1 
+          ? '<span style="background-color: #4caf50; color: white; padding: 2px 6px; border-radius: 12px; font-size: 0.8rem; margin-left: 8px;">Current Session</span>' 
+          : '';
+
           return `
           <div class="hit-item">
-            <h2><span class="bill-name">${instantsearch.highlight({ attribute: 'Name', hit }) || 'No Name'}</span></h2>
+            <h2><span class="bill-name">${instantsearch.highlight({ attribute: 'Name', hit }) || 'No Name'}</span>${currentSessionBadge}</h2>            
             <p><strong>State:</strong> ${hit.State || 'N/A'}</p>
             <p><strong>Intro date:</strong> ${formatDate(hit['Intro date'])}</p>
             <p><strong>Status:</strong> ${hit.Status || 'N/A'}</p>
@@ -262,6 +298,10 @@ search.addWidgets([
   instantsearch.widgets.pagination({
     container: '#pagination',
     totalPages: 100, // Set the total number of pages
+  }),
+    customCurrentSessionFilter({
+    container: '#current-session-filter',
+    attribute: 'Current legislative session',
   }),
   instantsearch.widgets.refinementList({
     container: '#policy-type-list',
